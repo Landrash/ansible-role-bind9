@@ -77,5 +77,8 @@ zone "{{ zone.name }}" {
    }; 
 {%     endif %}
 {%   endif %}
+{% if zone.update_key_secret is defined%}
+allow-update { key {{ zone.update_key_secret|default() }} ; } ;
+{% endif %}
 };
 {% endfor %}
