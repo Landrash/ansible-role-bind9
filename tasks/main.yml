@@ -301,21 +301,12 @@
   tags:
     - role:bind9:dnssec
 
-
-- name: Create dynamic bind9 zone files
-  template:
-    src: "{{ bind9_templates | default('') }}bind/zones/db.template.j2"
-    dest: "{{ bind9_zonedir }}/db.{{ item.name }}"
-    owner: root
-    group: "{{ bind9_group }}"
-    mode: 0644
-  with_items: "{{ bind9_zones_dynamic }}"
+- name: Creat zone files
+  ansible.builtin.include_tasks: create_zone_files.yml
+  loop: "{{ bind9_zones_dynamic }}"
   when:
     - bind9_authoritative | default()
     - item.type | default(bind9_zone_type) == 'master'
-  notify:
-    - Zone file change
-    - Reload bind9
   tags:
     - role:bind9:zones
 

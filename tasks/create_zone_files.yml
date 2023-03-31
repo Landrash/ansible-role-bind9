@@ -1,0 +1,33 @@
+- name: Check if zone file exists
+  ansible.builtin.stat:
+    path: "{{ bind9_zonedir }}/db.{{ item.name }}"
+  register: zone_file_exists
+
+- name: Get existing zone file serial
+  when: zone_file_exists
+  block:
+    - name: Read zone file on host
+      ansible.builtin.slurp:
+        src: "{{ bind9_zonedir }}/db.{{ item.name }}"
+      register: zone_file
+
+    - name: Get zone file serial
+      ansible.builtin.set_fact:
+        zone_serial: "{{ ((zone_file.content | b64decode) | regex_search('.*SOA.*[\r\n]+([^\r\n]+)')).split('\n').[1].replace('\t', '') }}"
+
+- name: Set serial fact
+  ansible.builtin.set_fact: 
+    zone_serial: 0
+  when: not zone_file_exists
+
+- name: Create dynamic bind9 zone files
+  template:
+    src: "{{ bind9_templates | default('') }}bind/zones/db.template.j2"
+    dest: "{{ bind9_zonedir }}/db.{{ item.name }}"
+    owner: root
+    group: "{{ bind9_group }}"
+    mode: 0644
+  when:  item.serial|int > zone_serial|int
+  notify:
+    - Zone file change
+    - Reload bind9
