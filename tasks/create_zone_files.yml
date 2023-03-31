@@ -13,7 +13,7 @@
 
     - name: Get zone file serial
       ansible.builtin.set_fact:
-        zone_serial: "{{ ((zone_file.content | b64decode) | regex_search('.*SOA.*[\r\n]+([^\r\n]+)')).split('\n').[1].replace('\t', '').replace('serial', '').replace(';', '').replace(' ', '') }}"
+        zone_serial: "{{ ((zone_file.content | b64decode) | regex_search('.*SOA.*[\r\n]+([^\r\n]+)')).split('\n').pop(1).replace('\t', '').replace('serial', '').replace(';', '').replace(' ', '') }}"
 
 - name: Set serial fact
   ansible.builtin.set_fact: 
