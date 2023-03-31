@@ -4,7 +4,7 @@
   register: zone_file_exists
 
 - name: Get existing zone file serial
-  when: zone_file_exists
+  when: zone_file_exists.stat.exists
   block:
     - name: Read zone file on host
       ansible.builtin.slurp:
@@ -18,7 +18,7 @@
 - name: Set serial fact
   ansible.builtin.set_fact: 
     zone_serial: 0
-  when: not zone_file_exists
+  when: not zone_file_exists.stat.exists
 
 - name: Create dynamic bind9 zone files
   template:
